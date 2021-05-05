@@ -104,7 +104,7 @@ int main(int argc, char* argv[])
 	int workersCoreMask = 0;
 	for (int i = 1; i <= 2; i++)
 	{
-		workersCoreMask = workersCoreMask | (1 << i);
+		workersCoreMask = workersCoreMask | (1 << (i+1));
 	}
 
 	// Start capture in async mode
