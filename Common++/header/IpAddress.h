@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <string>
-
+#include <algorithm>
 
 /// @file
 
@@ -68,6 +68,12 @@ namespace pcpp
 		std::string toString() const;
 
 		/**
+		 * Determine whether the address is a multicast address
+		 * @return True if an address is multicast
+		 */
+		bool isMulticast() const;
+
+		/**
 		 * Determine whether the address is valid (it's not an unspecified/zero)
 		 * @return True if an address is not unspecified/zero
 		 */
@@ -81,7 +87,16 @@ namespace pcpp
 		/**
 		 * Overload of the less-than operator
 		 */
-		bool operator<(const IPv4Address& rhs) const { return toInt() < rhs.toInt(); }
+		bool operator<(const IPv4Address& rhs) const
+		{
+			uint32_t intVal = toInt();
+			std::reverse((uint8_t*)(&intVal), (uint8_t*)(&intVal) + sizeof(intVal));
+
+			uint32_t rhsIntVal = rhs.toInt();
+			std::reverse((uint8_t*)(&rhsIntVal), (uint8_t*)(&rhsIntVal) + sizeof(rhsIntVal));
+
+			return intVal < rhsIntVal;
+		}
 
 		/**
 		 * Overload of the not-equal-to operator
@@ -115,6 +130,15 @@ namespace pcpp
 		 */
 		static const IPv4Address Zero;
 
+		/**
+		 * A static values representing the lower and upper bound of IPv4 multicast ranges. The bounds are inclusive.
+		 * MulticastRangeLowerBound is initialized to "224.0.0.0".
+		 * MulticastRangeUpperBound is initialized to "239.255.255.255".
+		 * In order to check whether the address is a multicast address the isMulticast method can be used.
+		 */
+		static const IPv4Address MulticastRangeLowerBound;
+		static const IPv4Address MulticastRangeUpperBound;
+
 	private:
 		uint8_t m_Bytes[4];
 	}; // class IPv4Address
@@ -128,10 +152,6 @@ namespace pcpp
 		memcpy(&addr, m_Bytes, sizeof(m_Bytes));
 		return addr;
 	}
-
-
-
-
 
 	/**
 	 * @class IPv6Address
@@ -168,6 +188,12 @@ namespace pcpp
 		 * @return A string representation of the address
 		 */
 		std::string toString() const;
+
+		/**
+		 * Determine whether the address is a multicast address
+		 * @return True if an address is multicast
+		 */
+		bool isMulticast() const;
 
 		/**
 		 * Determine whether the address is unspecified
@@ -220,13 +246,16 @@ namespace pcpp
 		 */
 		static const IPv6Address Zero;
 
+		/**
+		 * A static value representing the lower bound of IPv6 multicast ranges. The bound is inclusive.
+		 * MulticastRangeLowerBound is initialized to "ff00:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0".
+		 * In order to check whether the address is a multicast address the isMulticast method can be used.
+		 */
+		static const IPv6Address MulticastRangeLowerBound;
+
 	private:
 		uint8_t m_Bytes[16];
 	}; // class IPv6Address
-
-
-
-
 
 
 	///**
@@ -313,6 +342,12 @@ namespace pcpp
 		 * Determine whether the object contains an IP version 6 address
 		 */
 		bool isIPv6() const { return getType() == IPv6AddressType; }
+
+		/**
+		 * Determine whether the address is a multicast address
+		 * @return True if an address is multicast
+		 */
+		bool isMulticast() const { return (getType() == IPv4AddressType) ? m_IPv4.isMulticast() : m_IPv6.isMulticast(); }
 
 		/**
 		 * Get a reference to IPv4 address instance
